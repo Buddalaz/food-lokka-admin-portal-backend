@@ -9,7 +9,8 @@ application.config['SECRET_KEY'] = 'some_random_secret'
 db_path = os.path.join(os.path.dirname(__file__), 'food_lokka.db')
 
 
-application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+# application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+application.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://sandun:sandun1234@aaxh9pp9dyxu48.c9wydp4zepsw.us-west-1.rds.amazonaws.com:3306/ebdb"
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(application)
 
