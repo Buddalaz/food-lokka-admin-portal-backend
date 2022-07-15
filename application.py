@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass
 
 application = Flask(__name__)
-
+application.config['SECRET_KEY'] = 'some_random_secret'
 db_path = os.path.join(os.path.dirname(__file__), 'food_lokka.db')
 
 
