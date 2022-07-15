@@ -1,16 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import os
 import json
 from dataclasses import dataclass
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 db_path = os.path.join(os.path.dirname(__file__), 'food_lokka.db')
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-db = SQLAlchemy(app)
+application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db = SQLAlchemy(application)
 
 # cerate databases
 
@@ -44,25 +45,45 @@ class User(db.Model):
 class Resturent(db.Model):
 
     id: int
-    resturent_name: str
-    address: str
-    password: str
-    user_id: int
+    area: str
+    resturentName: str
+    street: str
+    locationLink: str
+    city: str
+    zipCode: str
+    country: str
+    phone: str
+    meals: str
+    priceRange: str
+    userId: int
 
     id = db.Column(db.Integer, primary_key=True)
-    resturent_name = db.Column(db.String(80), unique=True, nullable=False)
-    address = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(120), unique=True, nullable=False)
-    # lastUpdateDateTime = db.Column(db.String(120), unique=True, nullable=False)
-    user_id = db.Column(
+    area = db.Column(db.String(80), nullable=False)
+    resturentName = db.Column(db.String(80), nullable=False)
+    street = db.Column(db.String(120), nullable=False)
+    locationLink = db.Column(db.String(120), nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    zipCode = db.Column(db.String(120), nullable=False)
+    country = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(120), nullable=False)
+    meals = db.Column(db.String(120), nullable=False)
+    priceRange = db.Column(db.String(120), nullable=False)
+    userId = db.Column(
         db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    def __init__(self, resturent_name, address, password, user_id) -> None:
+    def __init__(self, area, resturentName, street, locationLink, city, zipCode, country, phone, meals, priceRange, userId) -> None:
         super().__init__()
-        self.resturent_name = resturent_name
-        self.address = address
-        self.password = password
-        self.user_id = user_id
+        self.area = area
+        self.resturentName = resturentName
+        self.street = street
+        self.locationLink = locationLink
+        self.city = city
+        self.zipCode = zipCode
+        self.country = country
+        self.phone = phone
+        self.meals = meals
+        self.priceRange = priceRange
+        self.userId = userId
 
     def __repr__(self) -> str:
         return f"Resturent : ['id'=> {self.id}, 'resturent_name' => {self.resturent_name}, 'address' => {self.address}, 'password' => {self.password}, , 'user_id' => {self.user_id} ]"
@@ -71,7 +92,17 @@ class Resturent(db.Model):
 db.create_all()
 
 
-@app.route("/save-user", methods=["POST"])
+@application.route("/")
+def index():
+    return render_template('login.html')
+
+
+@application.route('/dash', methods=['GET'])
+def route_dash():
+    return render_template('index.html')
+
+
+@application.route("/save-user", methods=["POST"])
 def saveUser():
     req = request.get_json()
 
@@ -84,7 +115,7 @@ def saveUser():
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 
-@app.route("/get-user/<username>", methods=["GET"])
+@application.route("/get-user/<username>", methods=["GET"])
 def getUserDetails(username):
     try:
         result = User.query.filter_by(username=username).first()
@@ -98,7 +129,7 @@ def getUserDetails(username):
         return jsonify({'status': 'Fail', 'data': e.__cause__}), 400
 
 
-@app.route("/get-resturents", methods=["GET"])
+@application.route("/get-resturents", methods=["GET"])
 def getAllResturentDetails():
     try:
         resturents = db.session.query(Resturent).all()
@@ -107,31 +138,35 @@ def getAllResturentDetails():
         return jsonify({'status': 'Fail', 'data': e.__cause__}), 400
 
 
-@app.route("/save-resturents", methods=["POST"])
+@application.route("/save-resturents", methods=["POST"])
 def saveResturent():
 
     req = request.get_json()
-    resturent_name = req['resturent_name']
-    address = req['address']
-    password = req['password']
-    user_id = req['user_id']
+
+    area = req['area']
+    resturent_name = req['resturentName']
+    street = req['street']
+    loca_link = req['locationLink']
+    city = req['city']
+    zip_code = req['zipCode']
+    country = req['country']
+    phone = req['phoneNumber']
+    meals = req['meals']
+    price_range = req['priceRange']
+    user_id = req['userId']
+
     # save resturent details
-    if resturent_name != None and address != None and password != None and user_id != None:
-        resturent = Resturent(resturent_name=resturent_name,
-                              address=address, password=password, user_id=user_id)
+    if area != None and resturent_name != None and street != None and loca_link != None:
+        resturent = Resturent(area=area, resturentName=resturent_name, street=street, locationLink=loca_link, city=city,
+                              zipCode=zip_code, country=country, phone=phone, meals=meals, priceRange=price_range, userId=user_id)
         db.session.add(resturent)
         db.session.commit()
         return jsonify({'status': 'Success'})
     else:
         return jsonify({'status': 'Fail'})
 
-    # if resturent is None:
-    #     return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
-    # else:
-    #     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
-
-@app.route("/update-resturents", methods=["PUT"])
+@application.route("/update-resturents", methods=["PUT"])
 def update():
     try:
         data = request.get_json()
@@ -143,7 +178,7 @@ def update():
         return jsonify({'status': 'Fail', 'data': e.__cause__}), 400
 
 
-@app.route("/delete-resturents/<restId>", methods=["DELETE"])
+@application.route("/delete-resturents/<restId>", methods=["DELETE"])
 def delete(restId):
     # print(type(restId))
     deleteId = int(restId)
@@ -158,4 +193,4 @@ def delete(restId):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    application.run(debug=True)
